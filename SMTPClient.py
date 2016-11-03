@@ -1,31 +1,85 @@
-import smtplib
+from socket import *
+import base64
+import ssl
 
-mailServ = smtplib.SMTP('smtp.gmail.com:587')
-mailServ.ehlo()
-mailServ.starttls()
+# Message to send
+msg = '\r\nI love computer networks!'
+endmsg = '\r\n.\r\n'
 
-username = raw_input('Enter your Gmail username: ')
-password = raw_input('Enter your Gmail password: ')
+# Choose a mail server (e.g. Google mail server) and call it mailserver
+mailserver = 'smtp.gmail.com'
 
-try:
-	mailServ.login(username,password)
-except smtplib.SMTPAuthenticationError:
-	print "Invalid Username or Password!"
-	mailServ.quit()	
-	exit()
+# Create socket called clientSocket and establish a TCP connection with mailserver
+clientSocket = socket(AF_INET, SOCK_STREAM)
+clientSocket = ssl.wrap_socket(clientSocket)
 
-to = raw_input('To: ')
-subject = raw_input('Subject: ')
-text = raw_input('Message: ')
+# Port number may change according to the mail server
+clientSocket.connect((mailserver, 465))
+recv = clientSocket.recv(1024)
+print recv
+if recv[:3] != '220':
+	print '220 reply not received from server.'
 
-msg = 'Subject: %s\n\n%s' % (subject, text)
+# Send HELO command and print server response.
+heloCommand = 'HELO gmail.com\r\n'
+clientSocket.send(heloCommand)
+recv1 = clientSocket.recv(1024)
+print recv1
+if recv1[:3] != '250':
+	print '250 reply not received from server.'
 
-try:
-	mailServ.sendmail(username,to,msg)
-except Exception:
-	print "Could not send mail!"
-	mailServ.quit()
-	exit()
+clientSocket.send("AUTH LOGIN\r\n")
+recv = clientSocket.recv(1024)
+print recv
+clientSocket.send(base64.b64encode("bachippi")+'\r\n')
+recv = clientSocket.recv(1024)
+print recv
+clientSocket.send(base64.b64encode("PASSWORD")+'\r\n')
+recv = clientSocket.recv(1024)
+print recv
 
-print "Message successfully sent!"
-mailServ.quit()
+# Send MAIL FROM command and print server response.
+mailfrom = 'MAIL FROM: <bachippi@gmail.com>\r\n'
+clientSocket.send(mailfrom)
+recv2 = clientSocket.recv(1024)
+print recv2
+if recv2[:3] != '250':
+	print '250 reply not received from server.'
+
+
+# Send RCPT TO command and print server response. 
+rcptto = 'RCPT TO: <chippi.bradley@gmail.com>\r\n'
+clientSocket.send(rcptto)
+recv3 = clientSocket.recv(1024)
+print recv3
+if recv3[:3] != '250':
+	print '250 reply not received from server.'
+
+# Send DATA command and print server response. 
+data = 'DATA\r\n'
+clientSocket.send(data)
+recv4 = clientSocket.recv(1024)
+print recv4
+if recv4[:3] != '354':
+	print '354 reply not received from server.'
+
+# Send message data.
+clientSocket.send('SUBJECT: Greeting To you!\r\n')
+clientSocket.send('test again')
+clientSocket.send(msg)
+
+# Message ends with a single period.
+clientSocket.send(endmsg)
+recv5 = clientSocket.recv(1024)
+print recv5
+if recv5[:3] != '250':
+	print '250 reply not received from server.'
+
+# Send QUIT command and get server response.
+quitcommand = 'QUIT\r\n'
+clientSocket.send(quitcommand)
+recv6 = clientSocket.recv(1024)
+print recv6
+if recv6[:3] != '221':
+	print '221 reply not received from server.'
+
