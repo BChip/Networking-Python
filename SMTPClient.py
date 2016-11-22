@@ -1,6 +1,4 @@
 from socket import *
-import base64
-import ssl
 
 # Message to send
 msg = '\r\nI love computer networks!'
@@ -11,10 +9,9 @@ mailserver = 'smtp.gmail.com'
 
 # Create socket called clientSocket and establish a TCP connection with mailserver
 clientSocket = socket(AF_INET, SOCK_STREAM)
-clientSocket = ssl.wrap_socket(clientSocket)
 
 # Port number may change according to the mail server
-clientSocket.connect((mailserver, 465))
+clientSocket.connect((mailserver, 587))
 recv = clientSocket.recv(1024)
 print recv
 if recv[:3] != '220':
@@ -27,19 +24,9 @@ recv1 = clientSocket.recv(1024)
 print recv1
 if recv1[:3] != '250':
 	print '250 reply not received from server.'
-
-clientSocket.send("AUTH LOGIN\r\n")
-recv = clientSocket.recv(1024)
-print recv
-clientSocket.send(base64.b64encode("bachippi")+'\r\n')
-recv = clientSocket.recv(1024)
-print recv
-clientSocket.send(base64.b64encode("PASSWORD")+'\r\n')
-recv = clientSocket.recv(1024)
-print recv
-
+	
 # Send MAIL FROM command and print server response.
-mailfrom = 'MAIL FROM: <bachippi@gmail.com>\r\n'
+mailfrom = 'MAIL FROM: <alice@gmail.com>\r\n'
 clientSocket.send(mailfrom)
 recv2 = clientSocket.recv(1024)
 print recv2
@@ -48,7 +35,7 @@ if recv2[:3] != '250':
 
 
 # Send RCPT TO command and print server response. 
-rcptto = 'RCPT TO: <chippi.bradley@gmail.com>\r\n'
+rcptto = 'RCPT TO: <bob@yahoo.com>\r\n'
 clientSocket.send(rcptto)
 recv3 = clientSocket.recv(1024)
 print recv3
